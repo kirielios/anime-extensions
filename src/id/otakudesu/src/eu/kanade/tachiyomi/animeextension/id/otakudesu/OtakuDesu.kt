@@ -236,7 +236,7 @@ class OtakuDesu :
             listOfNotNull(videoUrl?.let { Video(it, "DesuStream - $quality", it, headers) })
         }
 
-        "blogger.com" in link -> bloggerExtractor.videosFromUrl(link, headers, " - $quality")
+        "blogger.com" in link || "video.g?token=" in link -> bloggerExtractor.videosFromUrl(link, headers, " - $quality")
 
         "mp4upload" in link -> {
             client.newCall(GET(link, headers)).awaitSuccess().let {
@@ -353,7 +353,7 @@ class OtakuDesu :
     companion object {
         private val NONCE_ACTION_REGEX = Regex("""\{action:"([^"]+)"""")
         private val EMBED_ACTION_REGEX = Regex("""nonce:[^,]+,action:"([^"]+)"""")
-        private val DESUSTREAM_FILE_REGEX = Regex("""(?:file|videoURL)\s*[:=]\s*["'](https?://[^"']+)["']""")
+        private val DESUSTREAM_FILE_REGEX = Regex("""(?:file|videoURL)["']?\s*[:=]\s*["'](https?://[^"']+)["']""")
         private val DATE_FORMATTER by lazy {
             SimpleDateFormat("d MMM,yyyy", Locale("id", "ID"))
         }
