@@ -133,8 +133,8 @@ class NimeGami : AnimeHttpSource() {
 
     private fun Element.imageUrl(): String? {
         val src = attr("srcset").substringBefore(" ").ifBlank { attr("src") }.ifBlank { return null }
-        val image = "$baseUrl$src".toHttpUrl()
-        return image.queryParameter("url")?.let { "$baseUrl$it" } ?: image.toString()
+        val image = baseUrl.toHttpUrl().resolve(src) ?: return null
+        return image.queryParameter("url")?.let { baseUrl.toHttpUrl().resolve(it)?.toString() } ?: image.toString()
     }
 
     // ============================== Episodes ==============================
@@ -158,7 +158,8 @@ class NimeGami : AnimeHttpSource() {
 
     // ============================ Video Links =============================
     override suspend fun getHosterList(episode: SEpisode): List<Hoster> {
-        val number = episode.url.substringAfter("#episode_").toIntOrNull()
+        val number = episode.url.substringAfter("#episode_", "").toIntOrNull()
+            ?: throw Exception("Refresh the episode list to play this episode")
         return fetchPlayerData(episode.url.substringBefore("#")).links
             .filter { it.episode == number && it.mode == "embed" && it.playUrl != null && SUPPORTED_HOSTS.any(it.host::contains) }
             .map { link ->
@@ -175,11 +176,11 @@ class NimeGami : AnimeHttpSource() {
         val url = hoster.hosterUrl
         return when {
             "mp4upload" in url -> Mp4uploadExtractor(client).videosFromUrl(url, headers, prefix = "${hoster.hosterName} - ")
-            "vidhide" in url -> VidHideExtractor(client, headers).videosFromUrl(url) { hoster.hosterName }
+            "vidhide" in url -> VidHideExtractor(client, headers).videosFromUrl(url) { resolution -> "${hoster.hosterName} ($resolution)" }
             else -> {
                 val document = client.newCall(GET(url, headers)).awaitSuccess().useAsJsoup()
                 val videoUrl = document.selectFirst("main#player[data-src]")?.absUrl("data-src")
-                    ?: document.selectFirst("video[src]")?.absUrl("src")
+                    ?: document.selectFirst("video[src], video source[src]")?.absUrl("src")
                     ?: return emptyList()
                 listOf(Video(videoUrl = videoUrl, videoTitle = hoster.hosterName, headers = headers))
             }
