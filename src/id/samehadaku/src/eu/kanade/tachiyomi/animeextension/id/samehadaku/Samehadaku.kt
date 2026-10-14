@@ -85,15 +85,7 @@ class Samehadaku :
         return GET("$url${params.filter}", headers)
     }
 
-    override fun searchAnimeParse(response: Response): AnimesPage {
-        val doc = response.asJsoup()
-        val searchSelector = "main.site-main.relat > article"
-        return if (doc.selectFirst(searchSelector) != null) {
-            getAnimeParse(doc, searchSelector)
-        } else {
-            getAnimeParse(doc, "div.relat article")
-        }
-    }
+    override fun searchAnimeParse(response: Response): AnimesPage = getAnimeParse(response.asJsoup(), ".relat article")
 
     // ============================== Filters ===============================
 
@@ -183,7 +175,7 @@ class Samehadaku :
 
     private suspend fun getEmbedLinks(url: String, element: Element): Pair<String, String> {
         val server = element.selectFirst("span")?.text() ?: ""
-        srcRegex.find(element.attr("data-embed"))?.groupValues?.get(1)?.let { return Pair(server, it) }
+        srcRegex.find(element.attr("data-embed"))?.groupValues?.get(1)?.takeIf(String::isNotBlank)?.let { return Pair(server, it) }
 
         val form = FormBody.Builder().apply {
             add("action", "player_ajax")
