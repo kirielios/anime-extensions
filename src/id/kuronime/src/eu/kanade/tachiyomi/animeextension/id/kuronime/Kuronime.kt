@@ -133,7 +133,7 @@ class Kuronime :
                 "doodstream" -> listOfNotNull(DoodExtractor(client).videoFromUrl(url, quality))
                 "mp4upload" -> Mp4uploadExtractor(client).videosFromUrl(url, headers, suffix = " - $quality")
                 "pixeldrain" -> PixelDrainExtractor().videosFromUrl(url.substringBefore("?"), "$quality - ")
-                "filelions" -> VidHideExtractor(client, headers).videosFromUrl(url) { "FileLions - $quality" }
+                "filelions" -> VidHideExtractor(client, headers).videosFromUrl(url) { resolution -> "FileLions - $resolution" }
                 else -> emptyList()
             }
         }
