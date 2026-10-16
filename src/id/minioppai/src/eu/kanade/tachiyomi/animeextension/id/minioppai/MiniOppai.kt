@@ -9,6 +9,7 @@ import eu.kanade.tachiyomi.multisrc.animestream.AnimeStream
 import eu.kanade.tachiyomi.network.GET
 import keiyoushi.utils.tryParse
 import okhttp3.HttpUrl.Companion.toHttpUrl
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.Request
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
@@ -63,7 +64,7 @@ class MiniOppai :
                 GdrivePlayerExtractor(client).videosFromUrl(playerUrl, name, headers)
             }
 
-            "paistream.my.id" in url || "streampai.my.id" in url ->
+            url.toHttpUrlOrNull()?.host in PLAYER_HOSTS ->
                 MiniOppaiExtractor(client).videosFromUrl(url, headers)
 
             else -> emptyList()
@@ -103,4 +104,8 @@ class MiniOppai :
     // ============================== Filters ===============================
     override val fetchFilters = false
     override fun getFilterList() = MiniOppaiFilters.FILTER_LIST
+
+    companion object {
+        private val PLAYER_HOSTS = setOf("paistream.my.id", "streampai.my.id")
+    }
 }
