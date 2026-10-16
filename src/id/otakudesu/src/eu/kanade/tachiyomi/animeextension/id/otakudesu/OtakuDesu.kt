@@ -231,7 +231,7 @@ class OtakuDesu :
 
         "desustream" in link -> {
             val doc = client.newCall(GET(link, headers)).awaitSuccess().useAsJsoup()
-            val videoUrl = doc.selectFirst("video source[src], video[src]")?.absUrl("src")
+            val videoUrl = doc.selectFirst("video source[src~=.], video[src~=.]")?.absUrl("src")
                 ?: DESUSTREAM_FILE_REGEX.find(doc.select("script").joinToString("\n") { it.data() })?.groupValues?.get(1)
             listOfNotNull(videoUrl?.let { Video(it, "DesuStream - $quality", it, headers) })
         }
